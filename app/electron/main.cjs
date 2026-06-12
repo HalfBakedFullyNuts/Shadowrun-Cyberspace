@@ -76,6 +76,16 @@ ipcMain.handle('ltg:save', async (event, { path: filePath, content, suggestedNam
   return { path: target };
 });
 
+ipcMain.handle('file:open', async (event, { name, extensions }) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  const res = await dialog.showOpenDialog(win, {
+    filters: [{ name, extensions }, { name: 'All Files', extensions: ['*'] }],
+    properties: ['openFile'],
+  });
+  if (res.canceled || res.filePaths.length === 0) return null;
+  return { path: res.filePaths[0], content: fs.readFileSync(res.filePaths[0], 'latin1') };
+});
+
 ipcMain.handle('examples:list', async () => {
   const dir = examplesDir();
   if (!fs.existsSync(dir)) return [];

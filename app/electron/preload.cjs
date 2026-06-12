@@ -5,4 +5,5 @@ contextBridge.exposeInMainWorld('mcs', {
   readLtg: (filePath) => ipcRenderer.invoke('ltg:read', filePath),
   saveLtg: (args) => ipcRenderer.invoke('ltg:save', args),
   listExamples: () => ipcRenderer.invoke('examples:list'),
+  openFile: (filter) => ipcRenderer.invoke('file:open', filter),
 });

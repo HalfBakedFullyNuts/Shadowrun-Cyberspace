@@ -21,6 +21,30 @@ Design matrix grids for Shadowrun 2nd-edition decking runs:
   legal connection matrix, CPU-based IC budget (VR 1.0 p. 23), active-IC percentage and more.
 - **Matrix parameters** — entry node and range, alert status, emergency shutdown, read-only grids.
 
+## Run mode — the Cyberspace Emulator
+
+Hit **⚡ Jack In** to run a decker through the grid you built, in a Three.js 3D matrix view
+(bloom-lit neon structures, fog-of-war, orbiting IC entities, alert-tinted atmosphere):
+
+- **SR2/VR1.0 mechanics** ported from `cyberspc.exe`: open-ended d6 tests, hacking pool,
+  initiative loop, the IC satisfaction ladder (sleazed → suspicious → alarm), passive/active
+  alerts, mobile IC that hunts you, trigger chains, Trace/Scramble/Tar/attribute IC behavior,
+  damage staging with hardening and condition monitors, dump shock.
+- **Actions**: approach/withdraw ranges, move along datatrails, Analyze, Browse, file
+  transfer (I/O-timed, Scramble races you for the files), Sleaze, Deception, Attack, Slow,
+  deck programs (Armor/Cloak/Mirrors/Shield/Smoke/Medic), system operations per node type,
+  jack out (Black IC permitting).
+- **Original characters load**: `.DEK` cyberdecks and `.NPC` deckers from the 1996 package.
+- **Seedable RNG** — same seed, same run; ideal for testing and replays.
+
+### Swapping rules editions
+
+All edition math lives behind the `RulesEngine` interface
+([src/domain/run/rules.ts](src/domain/run/rules.ts)) — dice mechanics, initiative, damage
+staging, timing formulas. The session engine, IC AI and UI never touch edition specifics.
+To add Shadowrun 4: implement `Sr4Rules` against the same interface and pass it to
+`RunSession`. (SR4's fixed TN 5 hit-counting fits the same `successTest` contract.)
+
 ## File compatibility
 
 Grids load from and save to the original **`.ltg` text format**. Every file produced by the

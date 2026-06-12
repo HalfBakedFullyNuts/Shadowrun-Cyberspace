@@ -5,11 +5,14 @@ import { initialState, reducer } from './state';
 import { Canvas } from './components/Canvas';
 import { Toolbar } from './components/Toolbar';
 import { Inspector } from './components/Inspector';
+import { JackInDialog } from './components/JackInDialog';
+import { RunView } from './run3d/RunView';
 import { parseLtg, serializeLtg } from './domain/ltg';
 import { validateMatrix } from './domain/validate';
 import { checkStructure } from './domain/validate';
 import { deleteNode, updateMatrixMeta } from './domain/ops';
 import { allIce } from './domain/types';
+import { Decker, Cyberdeck } from './domain/run/persona';
 import { bridge } from './bridge';
 
 const TOOL_HINTS: Record<string, string> = {
@@ -23,6 +26,8 @@ export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
   const [examples, setExamples] = useState<{ name: string; path: string }[]>([]);
   const [examplesOpen, setExamplesOpen] = useState(false);
+  const [jackInOpen, setJackInOpen] = useState(false);
+  const [run, setRun] = useState<{ decker: Decker; deck: Cyberdeck; seed: number } | null>(null);
   const consoleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -107,6 +112,28 @@ export default function App() {
 
   const iceCount = allIce(state.matrix).length;
 
+  function tryJackIn() {
+    const errors = checkStructure(state.matrix).filter((f) => f.severity === 'error');
+    if (errors.length > 0) {
+      dispatch({ type: 'log', text: `Cannot jack in: ${errors[0].message}`, kind: 'error' });
+      dispatch({ type: 'findings', findings: validateMatrix(state.matrix) });
+      return;
+    }
+    setJackInOpen(true);
+  }
+
+  if (run) {
+    return (
+      <RunView
+        matrix={state.matrix}
+        decker={run.decker}
+        deck={run.deck}
+        seed={run.seed}
+        onExit={() => setRun(null)}
+      />
+    );
+  }
+
   return (
     <div className="app crt">
       <header className="header">
@@ -145,6 +172,7 @@ export default function App() {
           </div>
         )}
         <button className="btn primary" onClick={analyze}>Analyze</button>
+        <button className="btn primary" onClick={tryJackIn}>⚡ Jack In</button>
         <button className="btn" disabled={state.history.length === 0} onClick={() => dispatch({ type: 'undo' })}>↶</button>
         <button className="btn" disabled={state.future.length === 0} onClick={() => dispatch({ type: 'redo' })}>↷</button>
         <div className="spacer" />
@@ -171,6 +199,16 @@ export default function App() {
         <span className="stat">ALERT <b>{state.matrix.alert.toUpperCase()}</b></span>
         <span className="hint">{TOOL_HINTS[state.tool]}</span>
       </footer>
+
+      {jackInOpen && (
+        <JackInDialog
+          onCancel={() => setJackInOpen(false)}
+          onStart={(decker, deck, seed) => {
+            setJackInOpen(false);
+            setRun({ decker, deck, seed });
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -10,6 +10,7 @@ interface McsBridge {
   readLtg(path: string): Promise<LtgFile>;
   saveLtg(args: { path: string | null; content: string; suggestedName?: string }): Promise<{ path: string } | null>;
   listExamples(): Promise<{ name: string; path: string }[]>;
+  openFile(filter: { name: string; extensions: string[] }): Promise<LtgFile | null>;
 }
 
 declare global {
@@ -36,6 +37,9 @@ export function bridge(): McsBridge {
       a.download = args.suggestedName || 'matrix.ltg';
       a.click();
       URL.revokeObjectURL(a.href);
+      return null;
+    },
+    async openFile() {
       return null;
     },
     async listExamples() {
