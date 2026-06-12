@@ -1,0 +1,37 @@
+This is the source code for the Cyberspace/Matrix Program Package
+=================================================================
+Condition of use:
+See GNU-License.txt
+Additionally, inform me via e-mail that you are working on the
+source for whatever reason. So I may coordinate duplicate work
+and the community may benefit from that.
+
+Information about the source code:
+==================================
+The programming language is Microsoft Visual Basic 3.0.
+Since it is easy to understand, you may try to port the programs
+to another programming language. This is possible, even when
+you do not own Visual Basic 3.0.
+
+
+The program package consists of four programs:
+cyberspc.exe
+cybdeck.exe
+mated.exe
+deckered.exe
+
+The *.mak files are project files, which define the source code
+files *.frm and *.bas used by the project. Each project results
+in a *.exe file.
+
+Each *.frm and corresponding *.frx (for binary data defining graphics)
+generates one FORMULAR or DIALOG and contains source code. Standard 
+dialogs or message boxes may be executed from within a form.
+*.bas files contain source code without GUI elements.
+
+Have a lot of fun,
+
+Icetoaster aka Stefan Markgraf 
+icetoaster@gmx.de
+
+2000/01/20
