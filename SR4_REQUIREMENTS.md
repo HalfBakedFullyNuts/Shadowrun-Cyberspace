@@ -19,6 +19,11 @@ Fill the **NEEDS DATA** slots and I can implement `Sr4Rules` + the engine change
 - **Editions coexist.** SR2 stays fully selectable; an edition picker is added to the Jack In
   dialog. The `RulesEngine` interface and existing tests already support this.
 - **Sim mode selectable**, default **hot sim** (3 IPs, 5P dumpshock, lethal Black IC).
+- **Technomancer = optional SR4 persona type.** Under SR4, the Jack In dialog offers persona type
+  **Hacker** (commlink/deck + programs) or **Technomancer** (Living Persona + Complex Forms +
+  Sprites). Same `Sr4Rules` dice engine; the difference is the persona model, the resource it
+  spends (Fading vs Matrix damage), and what it summons (Sprites vs loads IC). See the
+  Technomancer section below.
 
 ---
 
@@ -97,6 +102,69 @@ Fill the **NEEDS DATA** slots and I can implement `Sr4Rules` + the engine change
 
 ---
 
+## Technomancers — optional SR4 persona type
+
+A technomancer is selected instead of a deck-hacker at Jack In. Same TN5 dice engine, same
+Cracking/Electronics skills and standard Matrix actions; everything below is what differs.
+
+### Resonance & Fading — DONE
+- Powered by **Resonance** (connection to the wireless gestalt); incompatible with Magic. Essence
+  loss from 'ware permanently reduces Resonance.
+- No programs — they use **Complex Forms**; using abilities causes **Fading** (mental fatigue).
+
+### Living Persona (replaces deck attributes) — DONE
+- No deck/commlink/sim module — the brain projects a **Living Persona**. Attributes derive from
+  mental stats, **capped at Resonance**:
+  - **Firewall = Willpower**
+  - **Response = Intuition** (+1 in full VR)
+  - **Signal = Resonance ÷ 2** (round up)
+  - **System = Logic**
+  - **Biofeedback Filter = Charisma** (inherent)
+- Complex Form max base rating = **Resonance**.
+
+### Threading & Tasking — DONE
+- In any pool, replace the program rating with the **Complex Form** rating.
+- **Threading** (improvise/boost a form): Software + Resonance Test; each hit = +1 rating
+  (max = 2× Resonance). Sustaining a threaded form = **−2 dice pool** to all other tests.
+- **Tasking** skill group (technomancer-only): Compiling, Decompiling, Registering.
+
+### Sprites (replace IC/agents) — DONE (NEEDS DATA on per-type stats)
+- Compiled digital entities. A Sprite's Matrix attributes, skills and complex forms all equal its
+  **Rating** (chosen at compile); it rolls **Rating + skill/form**.
+- **Compile**: Opposed Compiling + Resonance vs Sprite Rating; each net hit = one **task** (service).
+  Unregistered sprites vanish after 8 hours or when tasks run out.
+- Generic types: **Courier, Crack, Data, Fault, Machine**.
+- Sprite initiative: Pilot(Rating) + Response(Rating), **3 IPs**.
+
+### Damage & Fading — DONE
+- **No separate Matrix Condition Monitor** — Matrix damage → **Stun** on the meat body. Knocked
+  unconscious ⇒ Living Persona crashes.
+- **Fading** resisted with **Willpower + Resonance**.
+  - Threading: Fading DV = number of hits used.
+  - Compile/Register: Fading DV = **2× hits** (not net hits) on the Opposed Test.
+  - Fading is Stun, unless final threaded-form rating / sprite rating **exceeds Resonance** ⇒ Physical.
+
+### Initiative — DONE
+- Always **hot sim** in full VR. Matrix Initiative = **(Intuition × 2) + 1**, **3 IPs**.
+
+### Alert / bio-node — DONE
+- Triggers alerts in enemy nodes normally. Own organic node (PAN) is **always hidden mode**, ignores
+  standard acknowledge-response protocols.
+
+### Trace — DONE
+- No hardwired access ID — **auto-spoofs** one without a test. A trace can only triangulate physical
+  location to ~50 m relative to the connected node.
+- Mundane hackers/spiders **cannot hack a bio-node** (not recognized as a valid node). Other
+  technomancers/sprites can — treated as hacking an **admin account on the fly, +6 threshold**.
+
+### Streams / Submersion / Resonance Realms — DONE (mostly cosmetic for the emulator)
+- **Stream** (Cyberadept, Technoshaman, …) sets which Mental attribute joins Resonance to resist
+  Fading, and which five sprite types can be compiled.
+- **Submersion** raises Resonance max and grants **Echoes** (Biowire, Overclocking, …) — char-gen,
+  largely out of run scope.
+- **Resonance Realms** bypass standard topology via Matrix backdoors (Event Horizon). Likely out of
+  scope for v1 of the run engine — flag if you want it modeled.
+
 ## NEEDS DATA (fill these to finish)
 
 1. **Access-privilege thresholds & intervals**
@@ -128,6 +196,19 @@ Fill the **NEEDS DATA** slots and I can implement `Sr4Rules` + the engine change
 
 7. **Data bombs** (new in SR4) — add as an editor feature on nodes/files? `____`
 
+### Technomancer-specific
+
+8. **Complex Form list** — the forms the Living Persona should offer (the SR4 form equivalents of
+   Attack, Stealth, Analyze, Exploit, Browse, Track, Medic, Armor, etc.). Confirm 1:1 mapping to the
+   program list, or give the canonical list + a sample technomancer's forms & ratings. `____`
+9. **Sprite stat blocks** — per type (Courier/Crack/Data/Fault/Machine): which skills/complex forms
+   each rolls and any special powers (e.g. Crack sprite's Suppression, Data sprite's Browse). Plus a
+   sample starting Resonance + sprite ratings. `____`
+10. **Stream table** — for the Streams you want offered, which Mental attribute joins Resonance for
+    Fading resistance and which five sprite types each can compile. (Default: offer Cyberadept +
+    Technoshaman, all five generic sprites.) `____`
+11. **Resonance Realms** — model them in the run engine, or leave out of v1? (Plan: out of v1.) `____`
+
 ---
 
 ## Implementation plan (once data is in)
@@ -144,8 +225,20 @@ Fill the **NEEDS DATA** slots and I can implement `Sr4Rules` + the engine change
    Fly / Browse / Trace, one interval per action, with the node's detection roll racing the hacker.
 6. **Editor**: SR4 node attribute fields, SR4 IC stat blocks, optional data bombs.
 7. **Jack In dialog**: edition picker (SR2 / SR4) + sim mode (cold/hot).
-8. **Tests** (`run.test.ts`): mirror the `Sr2Rules` suite for `Sr4Rules`; fuzz an SR4 run to
-   confirm no hangs.
+8. **Technomancer persona** (`persona.ts`): a `LivingPersona` variant deriving Firewall/Response/
+   Signal/System/Biofeedback from mental stats (capped at Resonance); Complex Forms in place of
+   programs; Stream + Resonance fields. Persona-type tag distinguishes Hacker vs Technomancer.
+9. **Fading + Threading** in `Sr4Rules`/`session.ts`: Fading resist (Willpower + Resonance), DV
+   rules and Stun/Physical switch; Threading as a Software + Resonance action with the −2 sustain
+   penalty; auto-spoofed access ID and always-hidden bio-node handling.
+10. **Sprites** (mirrors the IC path): compile via Opposed Compiling + Resonance, task accounting,
+    sprite acts on its own initiative — reuse the IC entity/AI plumbing in `session.ts` and the
+    orbiting-entity rendering in `scene3d.ts`.
+11. **Jack In dialog**: under SR4, persona-type toggle Hacker / Technomancer; technomancer forces
+    hot sim and shows Resonance/Stream/Fading instead of deck attrs.
+12. **Tests** (`run.test.ts`): mirror the `Sr2Rules` suite for `Sr4Rules`; add technomancer cases
+    (Living Persona derivation, Fading staging, sprite compile/tasking); fuzz both an SR4 hacker run
+    and a technomancer run to confirm no hangs.
 
 ---
 
