@@ -1,5 +1,5 @@
-// Left rail: tool modes + node palette (kind, security color, rating).
-import { NODE_COLORS, NodeColor, NodeKind } from '../domain/types';
+// Left rail: tool modes + node palette (kind, security color, rating, 3D theme).
+import { NODE_COLORS, NODE_THEMES, NODE_THEME_LABELS, NodeColor, NodeKind, NodeTheme } from '../domain/types';
 import { AppState, Action, Tool } from '../state';
 import { securityColor } from './Canvas';
 
@@ -65,6 +65,17 @@ export function Toolbar({ state, dispatch }: { state: AppState; dispatch: React.
         />
         <span className="rating-value">{state.placeRating}</span>
       </div>
+
+      <div className="panel-title">3D Sculpt</div>
+      <select
+        className="theme-select"
+        value={state.placeTheme}
+        onChange={(e) => dispatch({ type: 'palette', theme: e.target.value as NodeTheme })}
+      >
+        {NODE_THEMES.map((theme) => (
+          <option key={theme} value={theme}>{NODE_THEME_LABELS[theme]}</option>
+        ))}
+      </select>
     </aside>
   );
 }

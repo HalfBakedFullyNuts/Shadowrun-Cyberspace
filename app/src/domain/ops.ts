@@ -1,6 +1,6 @@
 // Pure editor operations over Matrix. Every function returns a new Matrix.
 // Index bookkeeping (links, ICE trigger references) ports MATED1.BAS DeleteICE/DelTriggerICEnr.
-import { Matrix, MatrixNode, Ice, NodeKind, NodeColor, MAX_NODES, MAX_LINKS, allIce } from './types';
+import { Matrix, MatrixNode, Ice, NodeKind, NodeColor, NodeTheme, MAX_NODES, MAX_LINKS, allIce } from './types';
 
 function cloneMatrix(matrix: Matrix): Matrix {
   return structuredClone(matrix);
@@ -13,6 +13,7 @@ export function addNode(
   rating: number,
   x: number,
   y: number,
+  theme?: NodeTheme,
 ): Matrix {
   if (matrix.nodes.length - 1 >= MAX_NODES) return matrix;
   if (matrix.nodes.some((node, i) => i > 0 && node.x === x && node.y === y)) return matrix;
@@ -20,6 +21,7 @@ export function addNode(
   const node: MatrixNode = {
     kind, color, rating, x, y, mesg: '', locked: 0, files: [], links: [], ice: [],
   };
+  if (theme && theme !== 'default') node.theme = theme;
   next.nodes.push(node);
   return next;
 }

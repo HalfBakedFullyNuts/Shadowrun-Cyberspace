@@ -1,5 +1,5 @@
 // App state: matrix document + editor UI state with bounded undo history.
-import { Matrix, NodeColor, NodeKind, createEmptyMatrix } from './domain/types';
+import { Matrix, NodeColor, NodeKind, NodeTheme, createEmptyMatrix } from './domain/types';
 import { Finding } from './domain/validate';
 
 export type Tool = 'select' | 'place' | 'link' | 'delete';
@@ -15,6 +15,7 @@ export interface AppState {
   placeKind: NodeKind;
   placeColor: NodeColor;
   placeRating: number;
+  placeTheme: NodeTheme;
   /** Selected node index, or null. */
   selected: number | null;
   /** First node clicked in link mode, or null. */
@@ -36,6 +37,7 @@ export function initialState(): AppState {
     placeKind: 'SPU',
     placeColor: 'Green',
     placeRating: 4,
+    placeTheme: 'default',
     selected: null,
     linkFrom: null,
     console: [{ text: 'MATRIX CONSTRUCTION SET // online. Place nodes, jack in, stay safe.', kind: 'info' }],
@@ -50,7 +52,7 @@ export type Action =
   | { type: 'undo' }
   | { type: 'redo' }
   | { type: 'tool'; tool: Tool }
-  | { type: 'palette'; kind?: NodeKind; color?: NodeColor; rating?: number }
+  | { type: 'palette'; kind?: NodeKind; color?: NodeColor; rating?: number; theme?: NodeTheme }
   | { type: 'select'; index: number | null }
   | { type: 'linkFrom'; index: number | null }
   | { type: 'log'; text: string; kind?: 'info' | 'warn' | 'error' }
@@ -80,6 +82,7 @@ export function reducer(state: AppState, action: Action): AppState {
         placeKind: state.placeKind,
         placeColor: state.placeColor,
         placeRating: state.placeRating,
+        placeTheme: state.placeTheme,
         console: [
           ...state.console.slice(-200),
           ...(action.log ? [{ text: action.log, kind: 'info' as const }] : []),
@@ -123,6 +126,7 @@ export function reducer(state: AppState, action: Action): AppState {
         placeKind: action.kind ?? state.placeKind,
         placeColor: action.color ?? state.placeColor,
         placeRating: action.rating ?? state.placeRating,
+        placeTheme: action.theme ?? state.placeTheme,
         tool: 'place',
       };
     case 'select':

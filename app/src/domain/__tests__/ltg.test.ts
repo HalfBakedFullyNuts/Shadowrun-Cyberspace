@@ -128,4 +128,28 @@ describe('ops', () => {
     matrix = addNode(matrix, 'SPU', 'Green', 4, 2, 2);
     expect(matrix.nodes.length).toBe(before);
   });
+
+  it('addNode stores a non-default 3D theme but omits default', () => {
+    let matrix = createEmptyMatrix();
+    matrix = addNode(matrix, 'CPU', 'Red', 5, 1, 1, 'aztec');
+    matrix = addNode(matrix, 'SPU', 'Green', 4, 2, 2, 'default');
+    expect(matrix.nodes[1].theme).toBe('aztec');
+    expect(matrix.nodes[2].theme).toBeUndefined();
+  });
+});
+
+describe('node theme persistence', () => {
+  it('round-trips a node theme through the .ltg format', () => {
+    let matrix = createEmptyMatrix();
+    matrix = addNode(matrix, 'CPU', 'Red', 5, 1, 1, 'underwater');
+    const reparsed = parseLtg(serializeLtg(matrix)).matrix;
+    expect(reparsed.nodes[1].theme).toBe('underwater');
+  });
+
+  it('ignores unknown or default theme keys on load', () => {
+    let matrix = createEmptyMatrix();
+    matrix = addNode(matrix, 'CPU', 'Red', 5, 1, 1);
+    const text = serializeLtg(matrix).replace('[Node1]', '[Node1]\r\nTheme=bogus');
+    expect(parseLtg(text).matrix.nodes[1].theme).toBeUndefined();
+  });
 });

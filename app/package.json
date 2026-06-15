@@ -1,7 +1,7 @@
 {
   "name": "matrix-construction-set",
   "productName": "Matrix Construction Set",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Create and visualize Shadowrun matrix environments — modern Electron rebuild of the classic Cyberspace/Matrix package (VB3, 2000) by Stefan Markgraf.",
   "license": "GPL-2.0",
   "main": "electron/main.cjs",

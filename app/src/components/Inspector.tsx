@@ -7,7 +7,10 @@ import {
   ICE_MOBILITIES,
   ICE_ACTIVITIES,
   NODE_COLORS,
+  NODE_THEMES,
+  NODE_THEME_LABELS,
   NodeColor,
+  NodeTheme,
   allIce,
 } from '../domain/types';
 import { addIce, deleteIce, updateIce, updateMatrixMeta, updateNode } from '../domain/ops';
@@ -175,6 +178,19 @@ export function Inspector({ state, dispatch }: { state: AppState; dispatch: Reac
               />
             </div>
           </div>
+          {node.kind !== 'MAT' && node.kind !== 'CRA' && (
+            <>
+              <label>3D Sculpt (run view)</label>
+              <select
+                value={node.theme ?? 'default'}
+                onChange={(e) => mutate(updateNode(matrix, selected, { theme: e.target.value as NodeTheme }))}
+              >
+                {NODE_THEMES.map((theme) => (
+                  <option key={theme} value={theme}>{NODE_THEME_LABELS[theme]}</option>
+                ))}
+              </select>
+            </>
+          )}
           <label>Message (contact range)</label>
           <textarea
             rows={2}

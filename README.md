@@ -40,6 +40,11 @@ Hit **⚡ Jack In** and play through the grid you built in a live Three.js 3D ma
 - **Seedable RNG** — same seed → same run; ideal for replays and testing
 - **Pluggable rules engine**: all edition math is behind a `RulesEngine` TypeScript interface —
   SR4 rules slot straight in without touching the engine or UI
+- **Node sculpts**: give any node one of 12 visual themes (Zen Garden, Aztec Temple, Mad Max
+  Wasteland, Urban, Underwater, Forest, Space, Castle, Abstract, Pixel Art, Retrofuturistic,
+  Vintage Vector) — picked in the editor's **3D Sculpt** control, rendered as bespoke geometry in
+  the run view with a kind badge. The SR "sculpted host" idea. Saved per-node in the `.ltg`
+  (a key the 1996 binaries ignore, so files stay compatible)
 
 ---
 

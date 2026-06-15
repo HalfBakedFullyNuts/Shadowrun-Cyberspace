@@ -183,6 +183,13 @@ button.btn.active {
 .rating-row { display: flex; align-items: center; gap: 8px; }
 .rating-row input[type='range'] { flex: 1; accent-color: var(--neon); }
 .rating-value { color: var(--neon); min-width: 20px; text-align: right; text-shadow: 0 0 6px var(--neon-dim); }
+.theme-select {
+  width: 100%; padding: 5px 6px; background: rgba(6,14,20,0.85);
+  color: var(--neon); border: 1px solid var(--neon-dim); border-radius: 3px;
+  font-family: inherit; font-size: 12px;
+}
+.theme-select:focus { outline: none; border-color: var(--neon); box-shadow: 0 0 6px var(--neon-dim); }
+.theme-select option { background: #0a1018; }
 
 /* --- Canvas --- */
 .canvas-wrap {

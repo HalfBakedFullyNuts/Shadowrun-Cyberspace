@@ -9,8 +9,18 @@ import {
   IceActivity,
   NodeColor,
   AlertLevel,
+  NODE_THEMES,
+  NodeTheme,
   createEmptyMatrix,
 } from './types';
+
+/** Accept a persisted theme key only if it is a known non-default theme. */
+function parseTheme(raw: string | undefined): NodeTheme | undefined {
+  const value = (raw ?? '').trim().toLowerCase();
+  return value && value !== 'default' && (NODE_THEMES as readonly string[]).includes(value)
+    ? (value as NodeTheme)
+    : undefined;
+}
 
 function parseColor(raw: string): NodeColor | '' {
   switch (raw.trim().toUpperCase().charAt(0)) {
@@ -237,6 +247,8 @@ export function parseLtg(text: string): ParseResult {
         .map((v) => parseInt(v.trim(), 10))
         .filter((v) => Number.isFinite(v) && v >= 0 && v <= nodeCount);
     }
+    const theme = parseTheme(section.get('THEME'));
+    if (theme) node.theme = theme;
     matrix.nodes.push(node);
   }
   return { matrix, warnings };
@@ -299,6 +311,8 @@ export function serializeLtg(matrix: Matrix): string {
       lines.push(typeLine);
       if (node.mesg.length > 0) lines.push(`Mesg=${node.mesg}`);
     }
+    // App-only key; 1996 binaries query specific keys and ignore this one.
+    if (node.theme && node.theme !== 'default') lines.push(`Theme=${node.theme}`);
     if (node.files.length > 0) {
       lines.push('Files=' + node.files.map((f) => `${f.name}/${f.sizeMp}/${f.value}`).join(' ') + ' ');
     }

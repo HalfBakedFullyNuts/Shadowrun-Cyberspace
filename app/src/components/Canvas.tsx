@@ -104,7 +104,7 @@ export function Canvas({ state, dispatch }: CanvasProps) {
     const cellY = toCell(point.y);
     if (tool === 'place') {
       if (cellX < 0 || cellY < 0) return;
-      const next = addNode(matrix, state.placeKind, state.placeColor, state.placeRating, cellX, cellY);
+      const next = addNode(matrix, state.placeKind, state.placeColor, state.placeRating, cellX, cellY, state.placeTheme);
       if (next === matrix) {
         dispatch({ type: 'log', text: 'Cannot place node there (occupied or limit reached).', kind: 'warn' });
       } else {

@@ -36,6 +36,30 @@ export type IceActivity = (typeof ICE_ACTIVITIES)[number];
 
 export type AlertLevel = 'none' | 'passive' | 'active';
 
+// Visual "sculpt" for a node in the 3D run view (SR sculpted-host metaphor).
+// 'default' keeps the per-kind neon geometry; the rest replace the node's look.
+export const NODE_THEMES = [
+  'default', 'zen', 'aztec', 'wasteland', 'urban', 'underwater',
+  'forest', 'space', 'castle', 'abstract', 'pixel', 'retrofuture', 'arcade',
+] as const;
+export type NodeTheme = (typeof NODE_THEMES)[number];
+
+export const NODE_THEME_LABELS: Record<NodeTheme, string> = {
+  default: 'Default (neon)',
+  zen: 'Japanese Zen Garden',
+  aztec: 'Aztec Sun Temple',
+  wasteland: 'Mad Max Wasteland',
+  urban: 'Urban',
+  underwater: 'Underwater',
+  forest: 'Forest',
+  space: 'Space',
+  castle: 'Medieval Castle',
+  abstract: 'Abstract Shapes',
+  pixel: 'Pixel Art',
+  retrofuture: 'Retrofuturistic',
+  arcade: 'Vintage Video Game',
+};
+
 export interface DataFile {
   name: string;
   sizeMp: number;
@@ -72,6 +96,8 @@ export interface MatrixNode {
   /** Indices into Matrix.nodes (bidirectional by convention; validator repairs). */
   links: number[];
   ice: Ice[];
+  /** 3D run-view sculpt; absent = 'default' neon look. App-only, ignored by 1996 binaries. */
+  theme?: NodeTheme;
 }
 
 export interface Matrix {

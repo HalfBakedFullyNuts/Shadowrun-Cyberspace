@@ -8,6 +8,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { Matrix, MatrixNode, NodeColor } from '../domain/types';
 import { RunSession, RANGE_CONTACT, RANGE_SENSOR, SAT_FROZEN, SAT_YELLING } from '../domain/run/session';
+import { buildThemedNode } from './themes3d';
 
 const SPACING = 4.2;
 const COLORS: Record<NodeColor | '', number> = {
@@ -31,12 +32,52 @@ function nodeGeometry(kind: MatrixNode['kind']): THREE.BufferGeometry {
   }
 }
 
+/** A dimmable material plus its baseline values, used for fog-of-war shading. */
+type DimMat = THREE.Material & { opacity: number; emissiveIntensity?: number };
+interface NodePart {
+  mat: DimMat;
+  baseEmissive: number;
+  baseOpacity: number;
+}
 interface NodeVisual {
   group: THREE.Group;
-  solid: THREE.Mesh;
-  wire: THREE.LineSegments;
+  parts: NodePart[];
   ring: THREE.Mesh;
+  badge: THREE.Sprite | null;
   color: number;
+}
+
+/** Floating text label showing the node kind above a themed sculpt. */
+function makeKindBadge(label: string, color: number): THREE.Sprite {
+  const canvas = document.createElement('canvas');
+  canvas.width = 160;
+  canvas.height = 72;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = 'rgba(4,8,12,0.72)';
+    ctx.fillRect(4, 18, 152, 36);
+    ctx.font = 'bold 30px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
+    ctx.fillText(label, 80, 37);
+  }
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false, opacity: 0.9,
+  }));
+  sprite.scale.set(1.3, 0.58, 1);
+  return sprite;
+}
+
+/** Collect every mesh/line material under a group as dimmable parts. */
+function collectParts(root: THREE.Object3D, into: NodePart[]): void {
+  root.traverse((obj) => {
+    const holder = obj as THREE.Mesh | THREE.LineSegments;
+    if (!holder.material) return;
+    const mat = (Array.isArray(holder.material) ? holder.material[0] : holder.material) as DimMat;
+    mat.transparent = true;
+    into.push({ mat, baseEmissive: mat.emissiveIntensity ?? 0, baseOpacity: mat.opacity });
+  });
 }
 
 interface IceVisual {
@@ -140,29 +181,40 @@ export class MatrixScene {
     // nodes
     matrix.nodes.forEach((node) => {
       const color = COLORS[node.color] ?? COLORS[''];
-      const geometry = nodeGeometry(node.kind);
-      const solid = new THREE.Mesh(
-        geometry,
-        new THREE.MeshStandardMaterial({
+      const group = new THREE.Group();
+      const parts: NodePart[] = [];
+      const themed = node.theme && node.theme !== 'default' ? buildThemedNode(node.theme, color) : null;
+      let badge: THREE.Sprite | null = null;
+      if (themed) {
+        group.add(themed);
+        collectParts(themed, parts);
+        badge = makeKindBadge(node.kind, color);
+        badge.position.y = 2.1;
+        group.add(badge);
+      } else {
+        const geometry = nodeGeometry(node.kind);
+        const solid = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
           color: 0x05080c, emissive: color, emissiveIntensity: 0.45,
           metalness: 0.6, roughness: 0.35, transparent: true, opacity: 0.96,
-        }),
-      );
-      const wire = new THREE.LineSegments(
-        new THREE.EdgesGeometry(geometry),
-        new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.9 }),
-      );
+        }));
+        const wire = new THREE.LineSegments(
+          new THREE.EdgesGeometry(geometry),
+          new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.9 }),
+        );
+        group.add(solid, wire);
+        parts.push({ mat: solid.material as DimMat, baseEmissive: 0.45, baseOpacity: 0.96 });
+        parts.push({ mat: wire.material as DimMat, baseEmissive: 0, baseOpacity: 0.9 });
+      }
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(1.5, 1.62, 36),
         new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.35, side: THREE.DoubleSide }),
       );
       ring.rotation.x = -Math.PI / 2;
       ring.position.y = -1.35;
-      const group = new THREE.Group();
-      group.add(solid, wire, ring);
+      group.add(ring);
       group.position.copy(this.nodePos(node));
       this.scene.add(group);
-      this.nodeVisuals.push({ group, solid, wire, ring, color });
+      this.nodeVisuals.push({ group, parts, ring, badge, color });
     });
     // links
     const done = new Set<string>();
@@ -196,17 +248,20 @@ export class MatrixScene {
   /** Sync dynamic state from the run session (fog of war, IC, persona, alert tint). */
   sync(session: RunSession): void {
     if (!this.matrix) return;
-    // fog of war on nodes
+    // fog of war on nodes — scale each part's emissive/opacity from its baseline
     session.nodes.forEach((runtime, i) => {
       const visual = this.nodeVisuals[i];
       if (!visual) return;
       const known = runtime.visited !== 0 || i === 0;
-      const solidMat = visual.solid.material as THREE.MeshStandardMaterial;
-      const wireMat = visual.wire.material as THREE.LineBasicMaterial;
-      solidMat.emissiveIntensity = known ? (i === session.curnode ? 1.2 : 0.45) : 0.06;
-      solidMat.opacity = known ? 0.96 : 0.25;
-      wireMat.opacity = known ? 0.9 : 0.12;
-      (visual.ring.material as THREE.MeshBasicMaterial).opacity = i === session.curnode ? 0.8 : known ? 0.3 : 0.05;
+      const isCurrent = i === session.curnode;
+      const eFactor = isCurrent ? 2.6 : known ? 1.0 : 0.13;
+      const oFactor = known ? 1.0 : 0.28;
+      for (const part of visual.parts) {
+        if (part.mat.emissiveIntensity !== undefined) part.mat.emissiveIntensity = part.baseEmissive * eFactor;
+        part.mat.opacity = part.baseOpacity * oFactor;
+      }
+      (visual.ring.material as THREE.MeshBasicMaterial).opacity = isCurrent ? 0.8 : known ? 0.3 : 0.05;
+      if (visual.badge) (visual.badge.material as THREE.SpriteMaterial).opacity = known ? 0.9 : 0.14;
     });
 
     // persona position by range
