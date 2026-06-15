@@ -173,8 +173,8 @@ export default function App() {
         )}
         <button className="btn primary" onClick={analyze}>Analyze</button>
         <button className="btn primary" onClick={tryJackIn}>⚡ Jack In</button>
-        <button className="btn" disabled={state.history.length === 0} onClick={() => dispatch({ type: 'undo' })}>↶</button>
-        <button className="btn" disabled={state.future.length === 0} onClick={() => dispatch({ type: 'redo' })}>↷</button>
+        <button className="btn" title="Undo (Ctrl+Z)" disabled={state.history.length === 0} onClick={() => dispatch({ type: 'undo' })}>↶ Undo</button>
+        <button className="btn" title="Redo (Ctrl+Y)" disabled={state.future.length === 0} onClick={() => dispatch({ type: 'redo' })}>↷ Redo</button>
         <div className="spacer" />
         <div className="file-label">
           {state.dirty && <span className="dirty-dot">● </span>}

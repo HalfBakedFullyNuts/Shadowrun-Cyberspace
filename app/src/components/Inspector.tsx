@@ -138,8 +138,16 @@ export function Inspector({ state, dispatch }: { state: AppState; dispatch: Reac
             </select>
           </div>
         </div>
-        <div className="panel-title" style={{ marginTop: 14 }}>Grid</div>
-        <div className="finding info">Select a node on the canvas to edit its systems, data files and IC.</div>
+        <div className="workflow-guide">
+          <div className="wf-label">QUICK START</div>
+          <div className="wf-step"><span className="wf-n">①</span> Left panel — pick <b>+ Place</b></div>
+          <div className="wf-step"><span className="wf-n">②</span> Choose node type, security color and rating</div>
+          <div className="wf-step"><span className="wf-n">③</span> Click the canvas to drop the node</div>
+          <div className="wf-step"><span className="wf-n">④</span> Switch to <b>▹ Select</b> — click a node to edit it here</div>
+          <div className="wf-step"><span className="wf-n">⑤</span> Switch to <b>↔ Link</b> — click two nodes to connect them</div>
+          <div className="wf-step"><span className="wf-n">⑥</span> Click <b>Analyze</b> (top bar) to check rules</div>
+          <div className="wf-step"><span className="wf-n">⑦</span> Click <b>⚡ Jack In</b> to run the simulation</div>
+        </div>
       </aside>
     );
   }
@@ -180,7 +188,7 @@ export function Inspector({ state, dispatch }: { state: AppState; dispatch: Reac
           </div>
           {node.kind !== 'MAT' && node.kind !== 'CRA' && (
             <>
-              <label>3D Sculpt (run view)</label>
+              <label>3D Theme (visible in run view)</label>
               <select
                 value={node.theme ?? 'default'}
                 onChange={(e) => mutate(updateNode(matrix, selected, { theme: e.target.value as NodeTheme }))}
